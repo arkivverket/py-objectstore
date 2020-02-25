@@ -6,6 +6,9 @@ authors = ["Per Buer <per.buer@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.7"
+apache-libcloud = "^2.8.0"
+lockfile = "^0.12.2"
+cryptography = "^2.8"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
