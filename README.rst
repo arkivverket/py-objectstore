@@ -8,3 +8,10 @@ of Libcloud.
 
 The API is not meant for use outside the National Archieves.
 
+To add this to a Poetry project:
+
+[tool.poetry.dependencies]
+python = "^3.7"
+py-objectstore = { git = "https://github.com/arkivverket/py-objectstore.git" }
+
+
