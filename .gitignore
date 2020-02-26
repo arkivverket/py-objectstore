@@ -1,2 +1,4 @@
 poetry.lock
 dist
+__pycache__
+py_objectstore.egg-info
