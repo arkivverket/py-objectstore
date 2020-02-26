@@ -8,13 +8,16 @@ of Libcloud.
 
 The API is not meant for use outside the National Archieves. But for all means, go ahead. Its open source.
 
-## To add this to a Poetry project put something like this in your `pyproject.toml`
+## Using this with Poetry.
+To add this to a Poetry project put something like this in your `pyproject.toml`
 
 ```
 [tool.poetry.dependencies]
 python = "^3.7"
 py-objectstore = { git = "https://github.com/arkivverket/py-objectstore.git" }
 ```
+
+The proceed and do ```poetry install``` as you otherwise would.
 
 ## Example usage for local file access
 
