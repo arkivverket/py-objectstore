@@ -6,7 +6,7 @@ storage solutions.
 Currently the API is implemented using Apache Libcloud and will only support a verified subset
 of Libcloud.
 
-The API is not meant for use outside the National Archieves.
+The API is not meant for use outside the National Archieves. But for all means, go ahead. Its open source.
 
 ## To add this to a Poetry project put something like this in your `pyproject.toml`
 
@@ -18,7 +18,7 @@ py-objectstore = { git = "https://github.com/arkivverket/py-objectstore.git" }
 
 ## Example usage for local file access
 
-Say you have a folder that will act as a root for the objectstore. Say we use `/mnt/disk1`. In this folder there in another folder `data`which contains the files we wanna access.
+Say you have a folder that will act as a root for the objectstore. Say we use `/mnt/disk1`. In this folder there in another folder `data1` which contains the files we wanna access.
 
 In order to make this work you need the following environment variables to be set. For local development I recommend looking at the python-dotenv library to make loading of env variables easy.
 
