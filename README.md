@@ -6,7 +6,7 @@ storage solutions.
 Currently the API is implemented using Apache Libcloud and will only support a verified subset
 of Libcloud.
 
-The API is not meant for use outside the National Archieves. But for all means, go ahead. Its open source.
+The API is not meant for use outside the National Archieves. But for all means, go ahead. It´s open source.
 
 ## Using this with Poetry.
 To add this to a Poetry project put something like this in your `pyproject.toml`
