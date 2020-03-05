@@ -1,7 +1,7 @@
 import pytest
 import pytest_dependency
 
-from py_objectstore import ArkivverketObjectStorage ,__version__
+from py_objectstore import ArkivverketObjectStorage ,__version__, MakeIterIntoFile
 
 import hashlib
 import os
@@ -18,6 +18,10 @@ except:
     os.environ["BUCKET"] = "testcontainer"
     os.mkdir(f'{os.environ["LOCAL_FOLDER"]}/{os.environ["BUCKET"]}')
 
+
+# must a factor of 1024 so the file operations can assert
+chunk_size = 1024
+no_of_chunks = 10240
 #
 # Helper functions...
 #
@@ -32,9 +36,9 @@ def make_random_data():
     checksum = hashlib.sha256()
     content = []
     # Generate a block of random data. Should be around 10KB (will be repeated 1024 times).
-    rbytes = bytes(randomString(stringLength=1024*10), 'utf-8')
+    rbytes = bytes(randomString(stringLength=chunk_size), 'utf-8')
 
-    for i in range(0,1024):
+    for i in range(0, no_of_chunks):
         checksum.update(rbytes)
         content.append(rbytes)
     return content, checksum
@@ -70,6 +74,18 @@ def housekeeping():
 
 # ================ TESTS ===============
 
+# This is how this works:
+# First we test a streaming upload 
+# Then we download
+# Then we delete
+# Then we upload the file again (non-stream)
+# Then we stream a download
+
+# When the session ends the objects gets deleted again.
+
+
+
+
 def test_version():
     assert __version__ == '0.1.0'
 
@@ -92,6 +108,7 @@ def test_download():
             hash.update(chunk)
     assert checksum.digest() == hash.digest()
 
+
 @pytest.mark.dependency(depends=["test_download"])
 def test_delete():
     objects = storage.list_container(bucket)
@@ -100,6 +117,7 @@ def test_delete():
     objects = storage.list_container(bucket)
     print(objects)
     assert len(objects) == 0
+
 
 @pytest.mark.dependency(depends=["test_delete"])
 def test_upload_file():
@@ -121,3 +139,20 @@ def test_streaming_download():
 def test_list_container():
     objects = storage.list_container(bucket)
     assert len(objects) == 1
+
+
+@pytest.mark.dependency(depends=["test_upload_file"])
+def test_streaming_iter_download():
+    stream = storage.download_stream(bucket, objectname)
+    fileobject = MakeIterIntoFile(stream)
+    hash = hashlib.sha256()
+    chunks = 0
+    while True:
+        chunk = fileobject.read(amount=chunk_size)
+        if not chunk:
+            break
+        chunks = chunks + 1
+        assert len(chunk) == chunk_size
+        hash.update(chunk)
+    assert checksum.digest() == hash.digest()
+    assert chunks == no_of_chunks

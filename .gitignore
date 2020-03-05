@@ -3,3 +3,4 @@ dist
 __pycache__
 py_objectstore.egg-info
 .coverage
+.vscode
