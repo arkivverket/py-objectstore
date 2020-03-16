@@ -19,15 +19,19 @@ class ArkivverketObjectStorage:
     The API is not meant for use outside the National Archieves.
 
     Configuration is done using enviroment variables. The following variables are used:
-     - OBJECTSTORE Which driver - (gcs|local|s3)
+     - OBJECTSTORE Which driver - (gcs|local|abs|s3)
      For GCS:
       - GOOGLE_ACCOUNT - the service account for GCS.
       - AUTH_TOKEN - Path to the JSON file containing the auth token for GCS. Typically a k8s secret.
      For local storage:
       - LOCAL_FOLDER - Path to the base folder. Note that this folder must contain the "bucket"
+     For Azure Blob Storage:
+      - AZURE_ACCOUNT - user name / service account name
+      - AZURE_SECRET - key
      For S3 (not implmented yet)
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
+
 
     Attributes
     ----------
@@ -61,6 +65,11 @@ class ArkivverketObjectStorage:
             self.driver = cls(os.getenv('GOOGLE_ACCOUNT'),
                               os.getenv('AUTH_TOKEN'),
                               os.getenv('GOOGLE_PROJECT'))
+
+        elif (driver == 'abs'):
+            cls = get_driver(Provider.AZURE_BLOBS)
+            self.driver = cls(key=os.getenv('AZURE_ACCOUNT'),
+                              secret=os.getenv('AZURE_KEY'))
 
         elif (driver == 's3'):
             # connect to AWS here.
