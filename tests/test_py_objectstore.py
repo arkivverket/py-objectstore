@@ -12,7 +12,12 @@ try:
     from dotenv import load_dotenv
     load_dotenv()
 except:
-    print("Could not load .env file. Assuming local storage for testing.")
+    print("Could not load .env file. ")
+
+
+# If objectstore is not set, assume we're in the CI pipeline and we
+# need to populate our own environment.
+if not 'OBJECTSTORE' in os.environ:
     os.environ["OBJECTSTORE"] = "local"
     os.environ["LOCAL_FOLDER"] = tempfile.mkdtemp()
     os.environ["BUCKET"] = "testcontainer"
