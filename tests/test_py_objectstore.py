@@ -1,7 +1,7 @@
 import pytest
 import pytest_dependency
 
-from py_objectstore import ArkivverketObjectStorage ,__version__, MakeIterIntoFile
+from py_objectstore import ArkivverketObjectStorage , MakeIterIntoFile
 
 import hashlib
 import os
@@ -83,11 +83,6 @@ def housekeeping():
 
 # When the session ends the objects gets deleted again.
 
-
-
-
-def test_version():
-    assert __version__ == '0.1.0'
 
 @pytest.mark.dependency(depends=[])
 def test_streaming_upload():

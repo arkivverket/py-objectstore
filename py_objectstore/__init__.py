@@ -5,8 +5,6 @@ from libcloud.storage.providers import get_driver
 import os
 import sys
 
-__version__ = '0.1.0'
-
 class ArkivverketObjectStorage:
     """
     ArkivverketObjectStorage - Simple object storage API for The National Archieves of Norway.
