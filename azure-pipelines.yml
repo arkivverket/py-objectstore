@@ -36,7 +36,7 @@ steps:
 
 - task: TwineAuthenticate@0
   inputs:
-    artifactFeed: py-objectstore-feed
+    artifactFeed: twine-feed/py-objectstore
   displayName: 'Authenticate twine'
 
 - script: |
@@ -44,7 +44,7 @@ steps:
     set -x
     echo this is for debugging.
     cat $(PYPIRC_PATH)
-    poetry run twine upload  --non-interactive -r "py-objectstore-feed" --config-file .pypirc dist/*
+    poetry run twine upload --non-interactive -r "twine-feed/py-objectstore" --config-file $(PYPIRC_PATH) dist/*
     # This thing works, but it needs to authenticate and the auth is likely in the PYPIRC_PATH file.
     # poetry run twine upload -r "py-objectstore" --config-file .pypirc dist/*
   displayName: 'twine upload'
