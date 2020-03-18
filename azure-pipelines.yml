@@ -32,17 +32,19 @@ steps:
 - script: |
     # pip install pytest pytest-azurepipelines pytest-cov
     poetry run pytest --cov=. --cov-report=xml --cov-report=html
-  displayName: 'pytest'
+  displayName: 'Testing'
 
 - task: TwineAuthenticate@0
   inputs:
     artifactFeed: py-objectstore-feed
+  displayName: 'Authenticate twine'
 
 - script: |
     poetry build
+    set -x
     echo this is for debugging.
     cat $(PYPIRC_PATH)
-    poetry run twine upload -r "py-objectstore-feed" --config-file $(PYPIRC_PATH) dist/*
+    poetry run twine upload  --non-interactive -r "py-objectstore-feed" --config-file .pypirc dist/*
     # This thing works, but it needs to authenticate and the auth is likely in the PYPIRC_PATH file.
     # poetry run twine upload -r "py-objectstore" --config-file .pypirc dist/*
   displayName: 'twine upload'
