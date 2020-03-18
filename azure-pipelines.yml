@@ -10,8 +10,8 @@ pool:
   vmImage: 'ubuntu-latest'
 strategy:
   matrix:
-    Python36:
-      python.version: '3.6'
+#    Python36:
+#      python.version: '3.6'
     Python37:
       python.version: '3.7'
 
@@ -25,7 +25,6 @@ steps:
     python -m pip install --upgrade pip
     pip install poetry
     poetry install
-    # pip install -r requirements.txt
   displayName: 'Install dependencies'
 
 - script: |
@@ -39,4 +38,6 @@ steps:
 
 - script: |
     poetry build
-    poetry run twine upload -r "py-objectstore" --config-file $(PYPIRC_PATH) dist/*
+    # poetry run twine upload -r "py-objectstore" --config-file $(PYPIRC_PATH) dist/*
+    poetry run twine upload -r "py-objectstore" --config-file .pypirc dist/*
+  displayName: 'twine upload'
