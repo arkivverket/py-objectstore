@@ -3,6 +3,8 @@
 # Add steps that analyze code, save the dist with the build record, publish to a PyPI-compatible index, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/python
 
+# The whole twine thing is documented here: https://docs.microsoft.com/en-us/azure/devops/pipelines/ecosystems/python?view=azure-devops
+
 trigger:
 - master
 
@@ -38,6 +40,7 @@ steps:
 
 - script: |
     poetry build
-    # poetry run twine upload -r "py-objectstore" --config-file $(PYPIRC_PATH) dist/*
-    poetry run twine upload -r "py-objectstore" --config-file .pypirc dist/*
+    poetry run twine upload -r "py-objectstore" --config-file $(PYPIRC_PATH) dist/*
+    # This thing works, but it needs to authenticate and the auth is likely in the PYPIRC_PATH file.
+    # poetry run twine upload -r "py-objectstore" --config-file .pypirc dist/*
   displayName: 'twine upload'
