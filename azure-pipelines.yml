@@ -39,4 +39,4 @@ steps:
 
 - script: |
     poetry build
-    twine upload -r "py-objectstore" --config-file $(PYPIRC_PATH) dist/*
+    poetry run twine upload -r "py-objectstore" --config-file $(PYPIRC_PATH) dist/*
