@@ -3,3 +3,6 @@ __pycache__
 py_objectstore.egg-info
 .coverage
 .vscode
+coverage.xml
+htmlcov/
+test-output.xml

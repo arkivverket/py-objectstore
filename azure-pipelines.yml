@@ -6,7 +6,16 @@
 # The whole twine thing is documented here: https://docs.microsoft.com/en-us/azure/devops/pipelines/ecosystems/python?view=azure-devops
 
 trigger:
-- master
+  branches:
+    include:
+    - '*'
+  paths:
+    exclude:
+    - README.md
+    - LICENSE
+    - .gitignore
+
+
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -38,10 +47,6 @@ steps:
   inputs:
     artifactFeed: 'Meta/twine-feed'
   displayName: 'Authenticate twine'
-
-
-
-  # Relevant: https://github.com/MicrosoftDocs/vsts-docs/issues/2586
   
 - script: |
     poetry build
@@ -50,3 +55,4 @@ steps:
 - script: |
     poetry run twine upload --non-interactive -r "twine-feed" --config-file $(PYPIRC_PATH) dist/*
   displayName: 'Twine upload'
+  condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
