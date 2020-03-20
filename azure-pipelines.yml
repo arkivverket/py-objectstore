@@ -34,11 +34,15 @@ steps:
     poetry run pytest --cov=. --cov-report=xml --cov-report=html
   displayName: 'Testing'
 
-- task: TwineAuthenticate@0
+- task: TwineAuthenticate@1
   inputs:
-    artifactFeed: twine-feed/py-objectstore
+    artifactFeed: 'Meta/twine-feed'
   displayName: 'Authenticate twine'
 
+
+
+  # Relevant: https://github.com/MicrosoftDocs/vsts-docs/issues/2586
+  
 - script: |
     poetry build
     set -x
