@@ -46,9 +46,8 @@ steps:
 - script: |
     poetry build
     set -x
-    echo this is for debugging.
     cat $(PYPIRC_PATH)
-    poetry run twine upload --non-interactive -r "twine-feed/py-objectstore" --config-file $(PYPIRC_PATH) dist/*
+    poetry run twine upload --non-interactive -r "Meta/twine-feed/py-objectstore" --config-file $(PYPIRC_PATH) dist/*
     # This thing works, but it needs to authenticate and the auth is likely in the PYPIRC_PATH file.
     # poetry run twine upload -r "py-objectstore" --config-file .pypirc dist/*
   displayName: 'twine upload'
