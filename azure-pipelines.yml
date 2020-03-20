@@ -9,13 +9,12 @@ trigger:
   branches:
     include:
     - '*'
+    - 'refs/tags/*'
   paths:
     exclude:
     - README.md
     - LICENSE
     - .gitignore
-
-
 
 pool:
   vmImage: 'ubuntu-latest'
