@@ -8,6 +8,20 @@ of Libcloud.
 
 The API is not meant for use outside the National Archieves. But for all means, go ahead. It´s open source.
 
+## Release and build
+
+This project is built by Azure Pipelines. CI tasks are run on all commits in all branches. Uploads happen when we push a tag. So, to release a new version run the following
+
+```
+$ bump2version (major|minor|patch)
+
+$ git push --tags
+
+```
+
+A new version then gets uploaded to the Azure Artifact Feed where it can be consumed by other.
+
+
 ## Using this with Poetry.
 To add this to a Poetry project put something like this in your `pyproject.toml`
 
