@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "py-objectstore"
-version = "0.2.3"
+version = "0.3.0"
 description = "Simplified API towards object stores"
 authors = ["Per Buer <per.buer@gmail.com>"]
 
