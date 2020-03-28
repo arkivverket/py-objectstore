@@ -38,14 +38,15 @@ def randomString(stringLength=10):
 
 
 def make_random_data():
-    checksum = hashlib.sha256()
+    checksum = hashlib.md5()
     content = []
     # Generate a block of random data. Should be around 10KB (will be repeated 1024 times).
     rbytes = bytes(randomString(stringLength=chunk_size), 'utf-8')
 
-    for i in range(0, no_of_chunks):
+    for _ in range(0, no_of_chunks):
         checksum.update(rbytes)
         content.append(rbytes)
+    print("Generated random data with checksum", checksum.hexdigest())
     return content, checksum
 
 
@@ -102,10 +103,11 @@ def test_streaming_upload():
 @pytest.mark.dependency(depends=["test_streaming_upload"])
 def test_download():
     storage.download_file(bucket, objectname, objectname)
-    hash = hashlib.sha256()
+    hash = hashlib.md5()
     with open(objectname,"rb") as f:
         for chunk in f:
             hash.update(chunk)
+
     assert checksum.digest() == hash.digest()
 
 
@@ -130,7 +132,7 @@ def test_upload_file():
 @pytest.mark.dependency(depends=["test_upload_file"])
 def test_streaming_download():
     stream = storage.download_stream(bucket, objectname)
-    hash = hashlib.sha256()
+    hash = hashlib.md5()
     for chunk in stream:
         hash.update(chunk)
     assert checksum.digest() == hash.digest()
@@ -145,7 +147,7 @@ def test_list_container():
 def test_streaming_iter_download():
     stream = storage.download_stream(bucket, objectname)
     fileobject = MakeIterIntoFile(stream)
-    hash = hashlib.sha256()
+    hash = hashlib.md5()
     chunks = 0
     while True:
         chunk = fileobject.read(amount=chunk_size)

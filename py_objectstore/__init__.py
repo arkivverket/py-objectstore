@@ -7,6 +7,7 @@ import sys
 
 __version__ = "0.2.3"
 
+
 class ArkivverketObjectStorage:
     """
     ArkivverketObjectStorage - Simple object storage API for The National Archieves of Norway.
@@ -28,6 +29,11 @@ class ArkivverketObjectStorage:
      For Azure Blob Storage:
       - AZURE_ACCOUNT - user name / service account name
       - AZURE_SECRET - key
+     For Minio Storage:
+      - MINIO_KEY - key
+      - MINIO_SECRET - secret
+      - MINIO_HOST - server, default to localhost
+      - MINIO_PORT - port, default to 9000
      For S3 (not implmented yet)
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
@@ -59,6 +65,10 @@ class ArkivverketObjectStorage:
     """
 
     def __init__(self):
+        # Should MD5 be used for checksums. Can be disabled by drives as
+        # it is often broken on gateways (like minio)
+        self.verify_hash = True
+
         driver = os.getenv('OBJECTSTORE')
         if (driver == 'gcs'):
             cls = get_driver(Provider.GOOGLE_STORAGE)
@@ -71,6 +81,17 @@ class ArkivverketObjectStorage:
             self.driver = cls(key=os.getenv('AZURE_ACCOUNT'),
                               secret=os.getenv('AZURE_KEY'))
 
+        elif (driver == 'minio'):
+            # Minio storage gateway. More or less S3, but with disabled MD5 checking.
+            cls = get_driver(Provider.S3)
+            sec = False if os.getenv('MINIO_TLS') =='FALSE' else True
+            self.verify_hash = False
+            self.driver = cls(key=os.getenv('MINIO_KEY'),
+                              secret=os.getenv('MINIO_SECRET'),
+                              host=os.getenv('MINIO_HOST', 'localhost'),
+                              port=os.getenv('MINIO_PORT', 9000),
+                              secure=sec
+                              )
         elif (driver == 's3'):
             # connect to AWS here.
             self.driver = driver
@@ -155,7 +176,7 @@ class ArkivverketObjectStorage:
         container = self._get_container(container)
         obj = self.driver.upload_object(file_path=file,
                                         container=container,
-                                        object_name=name)
+                                        object_name=name, verify_hash=self.verify_hash)
         return obj
 
     def upload_stream(self, container, name, iterator):
@@ -210,7 +231,7 @@ class MakeIterIntoFile:
         while (len(self.next_chunk) < amount):
             try:
                 self._grow_chunk()
-            except StopIteration: # Exhausted the file.
+            except StopIteration:  # Exhausted the file.
                 break
 
         if (len(self.next_chunk) < amount):
@@ -218,11 +239,11 @@ class MakeIterIntoFile:
 
             self.offset += len(self.next_chunk)
             return self.next_chunk
-        
+
         # We got more data then the caller asked for. Chop off some data so tarfile is happy.
         ret = self.next_chunk[:amount]
         self.next_chunk = self.next_chunk[amount:]
-        
+
         self.offset += len(ret)
         return ret
 
@@ -234,7 +255,6 @@ class MakeIterIntoFile:
 
     def tell(self):
         return self.offset
-        
 
 
 class TarfileIterator:
