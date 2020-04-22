@@ -54,4 +54,4 @@ steps:
 - script: |
     poetry run twine upload --non-interactive -r "twine-feed" --config-file $(PYPIRC_PATH) dist/*
   displayName: 'Twine upload'
-  condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
+  condition: and(succeeded(),startsWith(variables['build.sourceBranch'], 'refs/tags/'))startsWith(variables['build.sourceBranch'], 'refs/tags/'))

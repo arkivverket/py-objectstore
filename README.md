@@ -8,7 +8,9 @@ of Libcloud.
 
 The API is not meant for use outside the National Archieves. But for all means, go ahead. It´s open source.
 
-## Release and build
+## Testing, release and build
+
+The project uses Pytest and should have decent test coverage. It uses local storage for testing. If you wanna test against a cloud storage provider you need to do so by hand by setting the required environment variables in the .env file and run pytest. If the environment variable OBJECTSTORE isn't set the test scripts will fall back to local storage.
 
 This project is built by Azure Pipelines. CI tasks are run on all commits in all branches. Uploads happen when we push a tag. So, to release a new version run the following
 
@@ -19,10 +21,22 @@ $ git push --tags
 
 ```
 
-A new version then gets uploaded to the Azure Artifact Feed where it can be consumed by other.
+A new version then gets uploaded to the Azure Artifact Feed where it can be consumed by other projects. Note that the container registry and Pypi repos are private so outside the archives you'll need to pull via Git.
+
+There is built in support for the following objectstores:
+
+- Google Cloud Storage
+- Azure Blob Storage
+- Minio storage gateways. This is mostly S3, but with some hash verification turned off as the S3 protocol was designed by people who never bothered to read the HTTP spec.
+
+## Pulling wheels via Poetry from the National Archives
+
+Please see internal documentation about how to access the pypi feeds in Azure.
 
 
-## Using this with Poetry.
+
+## Using this through git
+
 To add this to a Poetry project put something like this in your `pyproject.toml`
 
 ```
@@ -31,7 +45,7 @@ python = "^3.7"
 py-objectstore = { git = "https://github.com/arkivverket/py-objectstore.git" }
 ```
 
-The proceed and do ```poetry install``` as you otherwise would.
+The proceed and do `poetry install` as you otherwise would.
 
 ## Example usage for local file access
 
@@ -45,6 +59,7 @@ LOCAL_FOLDER=/mnt/disk1
 ```
 
 So say we wanna iterate over the files and do some stuff with them:
+
 ```
 #!/usr/bin/env python
 from py_objectstore import ArkivverketObjectStorage
@@ -62,8 +77,9 @@ for file in objects:
 ```
 
 The output might look something like this:
+
 ```
-./test.py                                     
+./test.py
 Processing 1.pdf now
 Got chunk of  1048760
 Processing 2.pdf now
