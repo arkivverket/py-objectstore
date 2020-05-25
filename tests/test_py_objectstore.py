@@ -8,6 +8,8 @@ import os
 import tempfile
 import string
 import random
+import uuid
+
 try:
     from dotenv import load_dotenv
     load_dotenv()
@@ -20,8 +22,9 @@ except:
 if not 'OBJECTSTORE' in os.environ:
     os.environ["OBJECTSTORE"] = "local"
     os.environ["LOCAL_FOLDER"] = tempfile.mkdtemp()
-    os.environ["BUCKET"] = "testcontainer"
-    os.mkdir(f'{os.environ["LOCAL_FOLDER"]}/{os.environ["BUCKET"]}')
+    os.environ["BUCKET"] = str(uuid.uuid4())
+    
+    # os.mkdir(f'{os.environ["LOCAL_FOLDER"]}/{os.environ["BUCKET"]}')
 
 
 # must a factor of 1024 so the file operations can assert
@@ -81,7 +84,8 @@ def housekeeping():
 # ================ TESTS ===============
 
 # This is how this works:
-# First we test a streaming upload 
+# First we create a container
+# Then we test a streaming upload 
 # Then we download
 # Then we delete
 # Then we upload the file again (non-stream)
@@ -89,8 +93,17 @@ def housekeeping():
 
 # When the session ends the objects gets deleted again.
 
-
 @pytest.mark.dependency(depends=[])
+def test_create_container():
+    print(f'Creating container {bucket}')
+    c = storage.create_container(bucket)
+
+    objs = len(list(storage.list_container(bucket)))
+    print("Container contents:", objs)
+    assert objs == 0
+    assert c != None
+
+@pytest.mark.dependency(depends=["test_create_container"])
 def test_streaming_upload():
     list = iter(object_content)
     objects = storage.list_container(bucket)
