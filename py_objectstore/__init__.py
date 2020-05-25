@@ -106,8 +106,8 @@ class ArkivverketObjectStorage:
         else:
             raise Exception('Unknown storage provider')
 
-    def _get_container(self, container):
-        """ Return an container based on name"""
+    def get_container(self, container):
+        """ Return an container object based on name"""
         container = self.driver.get_container(container_name=container)
         return container
 
@@ -176,15 +176,29 @@ class ArkivverketObjectStorage:
 
         """
 
-        container = self._get_container(container)
+        container = self.get_container(container)
         obj = self.driver.upload_object(file_path=file,
                                         container=container,
                                         object_name=name, verify_hash=self.verify_hash)
         return obj
 
     def upload_stream(self, container, name, iterator):
-        # print(f"Uploading stream {iterator} into {container} / {name}")
-        container = self._get_container(container)
+        """Upload a streamed object to objectstore - creating an object
+
+        Parameters
+        ----------
+        container : str
+            name of the container
+        name : (str or container object)
+            name of the object
+        file : str
+            target path of the file to be downloaded
+
+        """
+
+        # Container might be a string. If so, get the object.
+        if isinstance(container, str):
+            container = self.get_container(container)
         return container.upload_object_via_stream(iterator=iterator, object_name=name)
 
     def delete(self, container, name):
@@ -199,7 +213,7 @@ class ArkivverketObjectStorage:
 
     # Note: We should have used container_name here 
     def list_container(self, container):
-        container = self._get_container(container)
+        container = self.get_container(container)
         return list(map(lambda x: x.name, container.list_objects()))
 
     def create_container(self, container_name):
@@ -218,7 +232,7 @@ class ArkivverketObjectStorage:
         """
 
 
-        container = self._get_container(container_name)
+        container = self.get_container(container_name)
         return container.iterate_container_objects(container)
 
 
