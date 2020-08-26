@@ -5,7 +5,7 @@ from libcloud.storage.providers import get_driver
 import os
 import sys
 
-__version__ = "0.4.1"
+__version__ = "0.5.0"
 
 
 class ArkivverketObjectStorage:
