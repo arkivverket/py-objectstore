@@ -24,3 +24,9 @@ jobs:
           run: poetry run pylint --fail-under=10.0 py_objectstore
         - name: Test
           run: poetry run pytest --cov=py_objectstore --cov-report=xml --cov-fail-under=80
+        - name: Build
+          run: poetry build
+        - uses: actions/upload-artifact@v2
+          with:
+            name: py-objectstore
+            path: dist/*
