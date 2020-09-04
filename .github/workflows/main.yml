@@ -21,6 +21,6 @@ jobs:
         - name: Install dependencies
           run: poetry install
         - name: Lint
-          run: poetry run pylint
+          run: poetry run pylint --fail-under=10.0 py_objectstore
         - name: Test
           run: poetry run pytest --cov=py_objectstore --cov-report=xml --cov-fail-under=80
