@@ -201,15 +201,11 @@ class ArkivverketObjectStorage:
             container = self.get_container(container)
         return container.upload_object_via_stream(iterator=iterator, object_name=name)
 
+    # raises libcloud.storage.types.ObjectDoesNotExistError:
     def delete(self, container, name):
-        ret = False
-        try:
-            obj = self.driver.get_object(container_name=container,
-                                         object_name=name)
-            ret = obj.delete()
-        except libcloud.storage.types.ObjectDoesNotExistError:
-            ret = False
-        return ret
+        obj = self.driver.get_object(container_name=container,
+                                    object_name=name)
+        return obj.delete()
 
     # Note: We should have used container_name here 
     def list_container(self, container):
@@ -219,21 +215,6 @@ class ArkivverketObjectStorage:
     def create_container(self, container_name):
         c = self.driver.create_container(container_name)
         return c
-
-    def get_iter_container(self, container_name):
-        """Get an iterator that iterates over the objects in a container
-
-        Parameters
-        ----------
-        container_name : str
-            name of the container
-
-        returns iterator that yields Objects
-        """
-
-
-        container = self.get_container(container_name)
-        return container.iterate_container_objects(container)
 
 
 class MakeIterIntoFile:

@@ -2,6 +2,7 @@ import pytest
 import pytest_dependency
 
 from py_objectstore import ArkivverketObjectStorage , MakeIterIntoFile
+from libcloud.storage.types import ObjectDoesNotExistError
 
 import hashlib
 import os
@@ -86,10 +87,12 @@ def housekeeping():
 # This is how this works:
 # First we create a container
 # Then we test a streaming upload 
+# Then we iterate over the container...
 # Then we download
 # Then we delete
 # Then we upload the file again (non-stream)
 # Then we stream a download
+# Then we stream a download of a non-existent file...
 
 # When the session ends the objects gets deleted again.
 
@@ -102,6 +105,8 @@ def test_create_container():
     print("Container contents:", objs)
     assert objs == 0
     assert c != None
+
+
 
 @pytest.mark.dependency(depends=["test_create_container"])
 def test_streaming_upload():
@@ -122,6 +127,11 @@ def test_download():
             hash.update(chunk)
 
     assert checksum.digest() == hash.digest()
+
+
+
+    
+
 
 
 @pytest.mark.dependency(depends=["test_download"])
@@ -151,6 +161,15 @@ def test_streaming_download():
     assert checksum.digest() == hash.digest()
 
 @pytest.mark.dependency(depends=["test_upload_file"])
+def test_streaming_download_invalidname():
+    with pytest.raises(ObjectDoesNotExistError):
+        storage.download_stream(bucket, objectname + "XXX", objectname)
+        with open(objectname,"rb") as f:
+            for _ in f:
+                pass
+
+
+@pytest.mark.dependency(depends=["test_upload_file"])
 def test_list_container():
     objects = storage.list_container(bucket)
     assert len(objects) == 1
@@ -164,10 +183,25 @@ def test_streaming_iter_download():
     chunks = 0
     while True:
         chunk = fileobject.read(amount=chunk_size)
+
         if not chunk:
             break
         chunks = chunks + 1
         assert len(chunk) == chunk_size
         hash.update(chunk)
+    position = fileobject.tell()
+    assert position == chunk_size * no_of_chunks
+    fileobject.close()
     assert checksum.digest() == hash.digest()
     assert chunks == no_of_chunks
+
+@pytest.mark.dependency(depends=["test_upload_file"])
+def test_get_size():
+    size = storage.get_size(bucket, objectname)
+    assert size == no_of_chunks * chunk_size
+
+
+
+def test_delete_invalid_file():
+    with pytest.raises(ObjectDoesNotExistError):
+        storage.delete(bucket, objectname + "invalid")
