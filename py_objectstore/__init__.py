@@ -1,9 +1,13 @@
+""" These are a collection of classes used to implement a simple
+and cloud independant API towards objectstores as well as some
+service classes"""
+
+import os
+import sys
 import libcloud
 from libcloud.storage.types import Provider
 from libcloud.storage.providers import get_driver
 
-import os
-import sys
 
 __version__ = "0.5.2"
 
@@ -19,14 +23,16 @@ class ArkivverketObjectStorage:
 
     The API is not meant for use outside the National Archieves.
 
-    Note: the API is not very consistent with its use of parameter names. 
-    "container" and "container_name" is not always used correctly. The underlying API is not very consistent. 
+    Note: the API is not very consistent with its use of parameter names.
+    "container" and "container_name" is not always used correctly. The underlying API
+    is not very consistent.
 
     Configuration is done using enviroment variables. The following variables are used:
      - OBJECTSTORE Which driver - (gcs|local|abs|s3)
      For GCS:
       - GOOGLE_ACCOUNT - the service account for GCS.
-      - AUTH_TOKEN - Path to the JSON file containing the auth token for GCS. Typically a k8s secret.
+      - AUTH_TOKEN - Path to the JSON file containing the auth token for GCS.
+                     Typically a k8s secret.
      For local storage:
       - LOCAL_FOLDER - Path to the base folder. Note that this folder must contain the "bucket"
      For Azure Blob Storage:
@@ -73,38 +79,40 @@ class ArkivverketObjectStorage:
         self.verify_hash = True
 
         driver = os.getenv('OBJECTSTORE')
-        if (driver == 'gcs'):
+        if driver == 'gcs':
             cls = get_driver(Provider.GOOGLE_STORAGE)
             self.driver = cls(os.getenv('GOOGLE_ACCOUNT'),
                               os.getenv('AUTH_TOKEN'),
                               os.getenv('GOOGLE_PROJECT'))
 
-        elif (driver == 'abs'):
+        elif driver == 'abs':
             cls = get_driver(Provider.AZURE_BLOBS)
             self.driver = cls(key=os.getenv('AZURE_ACCOUNT'),
                               secret=os.getenv('AZURE_KEY'))
 
-        elif (driver == 'minio'):
+        elif driver == 'minio':
             # Minio storage gateway. More or less S3, but with disabled MD5 checking.
             cls = get_driver(Provider.S3)
-            sec = False if os.getenv('MINIO_TLS') =='FALSE' else True
+            if os.getenv('MINIO_TLS') == 'FALSE':
+                sec = False
+            else:
+                sec = True
             self.verify_hash = False
             self.driver = cls(key=os.getenv('MINIO_KEY'),
                               secret=os.getenv('MINIO_SECRET'),
                               host=os.getenv('MINIO_HOST', 'localhost'),
-                              port=os.getenv('MINIO_PORT', 9000),
+                              port=int(os.getenv('MINIO_PORT', '9000')),
                               secure=sec
                               )
-        elif (driver == 's3'):
+        elif driver == 's3':
             # connect to AWS here.
             self.driver = driver
-            raise NotImplementedError
-            # todo: implement stuff. :-)
-        elif (driver == 'local'):
+            raise NotImplementedError('S3 storage not yet supported')
+        elif driver == 'local':
             cls = get_driver(Provider.LOCAL)
             self.driver = cls(os.getenv('LOCAL_FOLDER'))
         else:
-            raise Exception('Unknown storage provider')
+            raise NotImplementedError('Unknown storage provider')
 
     def get_container(self, container):
         """ Return an container object based on name"""
@@ -202,19 +210,33 @@ class ArkivverketObjectStorage:
         return container.upload_object_via_stream(iterator=iterator, object_name=name)
 
     # raises libcloud.storage.types.ObjectDoesNotExistError:
-    def delete(self, container, name):
-        obj = self.driver.get_object(container_name=container,
+    def delete(self, container_name, name):
+        """ Deletes an object. Throws libcloud.storage.types.ObjectDoesNotExistError
+        Parameters
+        ----------
+        container_name : str
+        name: str - name of the object to be deleted"""
+
+        obj = self.driver.get_object(container_name=container_name,
                                     object_name=name)
         return obj.delete()
 
-    # Note: We should have used container_name here 
-    def list_container(self, container):
-        container = self.get_container(container)
+    # Note: We should have used container_name here
+    def list_container(self, container_name):
+        """ Returns a list of the contents in the container.
+            Use with care - the container can be big...."""
+        container = self.get_container(container_name)
         return list(map(lambda x: x.name, container.list_objects()))
 
     def create_container(self, container_name):
-        c = self.driver.create_container(container_name)
-        return c
+        """ Creates a container
+                Parameters
+        ----------
+        containername : str
+            name of the container
+        """
+        container = self.driver.create_container(container_name)
+        return container
 
 
 class MakeIterIntoFile:
@@ -228,8 +250,8 @@ class MakeIterIntoFile:
 
     """
 
-    def __init__(self, it, decode=False):
-        self.it = iter(it)  # should throw exception if not iter
+    def __init__(self, iterator, decode=False):
+        self.iterator = iter(iterator)  # should throw exception if not iter
         self.offset = 0
         self.is_open = True
         self.decode = decode
@@ -238,21 +260,25 @@ class MakeIterIntoFile:
         self.next_chunk = b''
 
     def _grow_chunk(self):
-        self.next_chunk = self.next_chunk + self.it.__next__()
+        self.next_chunk = self.next_chunk + self.iterator.__next__()
 
     def read(self, amount=0):
-        if (self.eof):  # At EOF,
+        """ read method.
+        Returns an empty string / short read.
+        This should perhaps throw an exception....
+        """
+        if self.eof:  # At EOF,
             return b''
         if not self.is_open:  # Return a short read. Wrong?
             return b''
 
-        while (len(self.next_chunk) < amount):
+        while len(self.next_chunk) < amount:
             try:
                 self._grow_chunk()
             except StopIteration:  # Exhausted the file.
                 break
 
-        if (len(self.next_chunk) < amount):
+        if len(self.next_chunk) < amount:
             self.eof = True
 
             self.offset += len(self.next_chunk)
@@ -266,12 +292,14 @@ class MakeIterIntoFile:
         return ret
 
     def close(self):
+        """ Closes the file """
         self.is_open = False
         self.next_chunk = None
         self.remainder = None
         return True
 
     def tell(self):
+        """ Returns an int telling you how far into the file you are.... """
         return self.offset
 
 
@@ -297,5 +325,4 @@ class TarfileIterator:
         nextmember = self.tarfileobject.next()
         if nextmember:
             return nextmember
-        else:
-            raise StopIteration
+        raise StopIteration
