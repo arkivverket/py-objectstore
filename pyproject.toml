@@ -5,7 +5,7 @@ description = "Simplified API towards object stores"
 authors = ["Per Buer <per.buer@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.8"
 apache-libcloud = "^3.1.0"
 lockfile = "^0.12.2"
 cryptography = "^2.8"
